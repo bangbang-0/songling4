@@ -9,15 +9,13 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 std::string recognizedText;  // 存储识别结果的全局变量
 
 // 回调函数，处理识别结果
-void textCallback(const std_msgs::String::ConstPtr& msg)
-{
-  recognizedText = msg->data;
-  ROS_INFO("/text_recognition/result: %s", recognizedText.c_str());
+void textCallback(const std_msgs::String::ConstPtr& msg) {
+    recognizedText = msg->data;
+    ROS_INFO("Text recognition result: '%s'", recognizedText.c_str());
 }
 
 // 发布导航目标点并执行导航
-void publishAndNavigateGoal(ros::Publisher& pub, MoveBaseClient& ac, double x, double y)
-{
+void publishAndNavigateGoal(ros::Publisher& pub, MoveBaseClient& ac, double x, double y) {
     // 创建一个PoseStamped消息，用于发送导航目标点信息
     geometry_msgs::PoseStamped goal_msg;
 
@@ -35,10 +33,10 @@ void publishAndNavigateGoal(ros::Publisher& pub, MoveBaseClient& ac, double x, d
     goal_msg.pose.orientation.x = 0.0;
     goal_msg.pose.orientation.y = 0.0;
     goal_msg.pose.orientation.z = 0.0;
-    goal_msg.pose.orientation.w = 1.0;
+    goal_msg.pose.orientation.w = 30;
 
     // 发布导航目标点消息
-    ROS_INFO("Publish navigation target point message");
+    ROS_INFO("Publishing navigation target point message");
     pub.publish(goal_msg);
 
     // 创建一个导航目标点消息
@@ -48,7 +46,7 @@ void publishAndNavigateGoal(ros::Publisher& pub, MoveBaseClient& ac, double x, d
     goal.target_pose = goal_msg;
 
     // 发送导航目标点消息
-    ROS_INFO("Send navigation target point message");
+    ROS_INFO("Sending navigation target point message to move_base");
     ac.sendGoal(goal);
 
     // 等待导航完成
@@ -56,9 +54,9 @@ void publishAndNavigateGoal(ros::Publisher& pub, MoveBaseClient& ac, double x, d
 
     // 输出导航结果
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-        ROS_INFO("success");
+        ROS_INFO("Navigation succeeded");
     } else {
-        ROS_WARN("failed");
+        ROS_WARN("Navigation failed");
     }
 }
 
@@ -76,55 +74,41 @@ int main(int argc, char** argv) {
     MoveBaseClient ac("move_base", true);
 
     // 等待move_base服务器启动
-    ROS_INFO("waiting for move_base start");
+    ROS_INFO("Waiting for move_base to start");
     ac.waitForServer();
 
     // 创建一个Subscriber，订阅识别结果话题
-    ros::Subscriber text_subscriber = nh.subscribe("/text_recognition/result", 10, textCallback);
+    ros::Subscriber text_subscriber = nh.subscribe("/recognized_text", 10, textCallback);
 
     while (ros::ok()) {
         // 等待识别结果
         ROS_INFO("Waiting for recognition result...");
 
-	// 处理回调函数
+        // 处理回调函数
         ros::spinOnce();
 
-        // 判断识别结果是否为"ABCD"中的某个值
-        if (recognizedText == "A") {
-ROS_INFO("text_recognition/result:",recognizedText);
-            // 设置坐标为A对应的值
-            double x = 1.68;
-            double y = 8.98;
-
-            // 发布导航目标点并执行导航
+        // 判断识别结果并执行相应的导航
+            if (recognizedText == "A") {
+            ROS_INFO("Recognized target 'A'");
+            double x = 0.92;
+            double y = 1.75;
             publishAndNavigateGoal(pub, ac, x, y);
-        } else if (recognizedText == "B") {
-ROS_INFO("text_recognition/result:",recognizedText);
-            // 设置坐标为B对应的值
-            double x = -0.13;
-            double y = 10.70;
-
-            // 发布导航目标点并执行导航
+               
+            } 
+         else   if (recognizedText == "B") {
+            ROS_INFO("Recognized target 'B' ");
+            double x = 0.16;
+            double y = 0.11;
             publishAndNavigateGoal(pub, ac, x, y);
-        } else if (recognizedText == "C") {
-ROS_INFO("text_recognition/result:",recognizedText);
-            // 设置坐标为C对应的值
-            double x = -0.50;
-            double y = 6.94;
-
-            // 发布导航目标点并执行导航
+             
+            } 
+        else  if (recognizedText == "C") {
+            ROS_INFO("Recognized target 'C'");
+            double x = 4.39;
+            double y = -0.60;
             publishAndNavigateGoal(pub, ac, x, y);
-        } else if (recognizedText == "D") {
-ROS_INFO("text_recognition/result:",recognizedText);
-            // 设置坐标为D对应的值
-	    double x = -3.94;
-            double y = 7.68;
-
-            // 发布导航目标点并执行导航
-            publishAndNavigateGoal(pub, ac, x, y);
-        }
-
-
+              
+            }
         // 清空识别结果
         recognizedText = "";
 
