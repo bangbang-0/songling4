@@ -93,7 +93,6 @@ int main(int argc, char** argv) {
             double x = 0.92;
             double y = 1.75;
             publishAndNavigateGoal(pub, ac, x, y);
-               
             } 
          else   if (recognizedText == "B") {
             ROS_INFO("Recognized target 'B' ");
